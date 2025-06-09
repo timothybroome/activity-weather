@@ -5,16 +5,26 @@
 
 ## 1. Why This Exists
 A client asked for a "walk-through-ready" proof-of-concept that emphasises clean architecture, long-term maintainability, and clear communication.  
-Time-boxed to ± 3 hours, the goal was to show **how** we would build a production-grade system, not to ship every bell and whistle.
 
 
 [Live Demo](https://activity-weather.vercel.app/)
 
 
-
 ---
 
 ## 2. Architectural Overview
+
+When taking on the brief for this task; my motivation was to give a compelling user-experience; but also provide strong foundations for best-practices and provide a good developer experience for a potentially distributed development team.
+
+Storybook is part of the solution; to provide live documentation of UI components, facilitate isolated visual tests, encourage isolation of display components from data layers and encourage re-use of components across UIs.
+
+![Storybook Screenshot](public/storybook.png){: style="width:50%;" }
+
+
+GraphiQL is included to allow developers to explore data and design queries
+
+Jest unit testing is setup to validate key business logic
+
 
 | Layer            | Tech & Purpose | Key Files/Folders |
 |------------------|----------------|-------------------|
@@ -48,6 +58,9 @@ G[Framer Motion] -->|Animations| A
 ```
 
 ### 2.1 GraphQL Schema Highlights
+
+Live GraphQL schema is available at https://activity-weather.vercel.app/graphql-playground
+
 ```graphql
 type Query {
   forecast(
@@ -178,9 +191,7 @@ The city data for autocomplete search is intentionally kept separate from GraphQ
 
 - **UI-Specific Feature**: Autocomplete is a UI interaction that benefits from immediate responses
 - **Performance**: Instant, zero-latency autocomplete with no network requests
-- **Offline Capability**: Search works without network connectivity
-- **Reduced Server Load**: No additional requests for each keystroke
-- **Implementation Simplicity**: Straightforward approach for a static dataset
+- **Reduced Server Load**: No additional requests for each keystroke; open-meteo API is rate-limited; which can be easily exceeded with rapid keystrokes
 
 This trade-off prioritizes UI responsiveness over architectural consistency, which is appropriate for this feature. If the city dataset were to grow significantly or become dynamic, moving to a GraphQL resolver approach would make more sense.
 
