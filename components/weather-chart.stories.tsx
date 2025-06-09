@@ -15,6 +15,9 @@ type Story = StoryObj<typeof WeatherChart>;
 
 // Mock weather data for our stories
 const mockWeatherData = {
+  location: "Aspen, Colorado",
+  latitude: 39.1911,
+  longitude: -106.8175,
   daily: {
     time: [
       "2025-06-05",

@@ -15,6 +15,9 @@ type Story = StoryObj<typeof ActivityCard>;
 
 // Mock data for our stories
 const mockWeatherData = {
+  location: "Aspen, Colorado",
+  latitude: 39.1911,
+  longitude: -106.8175,
   daily: {
     time: [
       "2025-06-05",
@@ -28,7 +31,8 @@ const mockWeatherData = {
     temperature_2m_max: [22, 24, 25, 21, 19, 20, 23],
     temperature_2m_min: [12, 14, 15, 13, 11, 12, 13],
     precipitation_sum: [0, 0.2, 0, 5, 10, 2, 0],
-    weather_code: [0, 1, 0, 61, 63, 80, 1]
+    weather_code: [0, 1, 0, 61, 63, 80, 1],
+    wind_speed_10m_max: [10, 12, 8, 15, 20, 18, 10]
   },
   current_weather: {
     temperature: 21.5,
@@ -45,7 +49,8 @@ export const Default: Story = {
     ranking: {
       activity: "skiing",
       averageScore: 85,
-      dailyScores: [90, 85, 88, 70, 65, 75, 80]
+      dailyScores: [90, 85, 88, 70, 65, 75, 80],
+      reasoning: "Good snow conditions and clear visibility for most of the week."
     },
     index: 0,
     delay: 0,
@@ -60,7 +65,8 @@ export const ExcellentRanking: Story = {
     ranking: {
       activity: "skiing",
       averageScore: 85,
-      dailyScores: [90, 85, 88, 70, 65, 75, 80]
+      dailyScores: [90, 85, 88, 70, 65, 75, 80],
+      reasoning: "Excellent snow conditions with perfect powder and visibility."
     },
   },
 };
@@ -72,19 +78,8 @@ export const GoodRanking: Story = {
     ranking: {
       activity: "surfing",
       averageScore: 65,
-      dailyScores: [70, 65, 68, 60, 55, 65, 70]
-    },
-  },
-};
-
-// Fair ranking
-export const FairRanking: Story = {
-  args: {
-    ...Default.args,
-    ranking: {
-      activity: "outdoor sightseeing",
-      averageScore: 45,
-      dailyScores: [50, 45, 48, 40, 35, 45, 50]
+      dailyScores: [70, 65, 68, 60, 55, 65, 70],
+      reasoning: "Moderate wave conditions with some good days for beginners."
     },
   },
 };
@@ -94,25 +89,10 @@ export const PoorRanking: Story = {
   args: {
     ...Default.args,
     ranking: {
-      activity: "indoor sightseeing",
-      averageScore: 25,
-      dailyScores: [30, 25, 28, 20, 15, 25, 30]
+      activity: "hiking",
+      averageScore: 35,
+      dailyScores: [40, 35, 38, 30, 25, 35, 40],
+      reasoning: "Heavy rainfall and muddy trails make hiking difficult this week."
     },
-  },
-};
-
-// With animation delay
-export const WithDelay: Story = {
-  args: {
-    ...Default.args,
-    delay: 0.5,
-  },
-};
-
-// With click handler
-export const WithClickHandler: Story = {
-  args: {
-    ...Default.args,
-    onClick: () => alert('Card clicked!'),
   },
 };

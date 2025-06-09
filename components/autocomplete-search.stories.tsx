@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { AutocompleteSearch } from './autocomplete-search';
-import { cities } from '@/data/cities';
 
 const meta: Meta<typeof AutocompleteSearch> = {
   title: 'Components/AutocompleteSearch',
@@ -63,7 +62,7 @@ export const WithRecentSearches: Story = {
     loading: false,
     error: '',
   },
-  play: async ({ canvasElement }) => {
+  play: async () => {
     // Set up recent searches in localStorage for this story
     localStorage.setItem('recent-searches', JSON.stringify([
       'New York, United States',
@@ -90,7 +89,7 @@ export const WithRecentSearches: Story = {
     loading: false,
     error: '',
   },
-  play: async ({ canvasElement }) => {
+  play: async () => {
     // Set up recent searches in localStorage for this story
     localStorage.setItem('recent-searches', JSON.stringify([
       'New York, United States',

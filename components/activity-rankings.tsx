@@ -10,9 +10,11 @@ interface ActivityRankingsProps {
   rankings: ActivityRanking[]
   weatherData: WeatherData
   onCitySelect?: (city: { name: string, latitude: number, longitude: number, country: string, region?: string }) => void
+  loading?: boolean
+  error?: string
 }
 
-export default function ActivityRankings({ rankings, weatherData, onCitySelect }: ActivityRankingsProps) {
+export default function ActivityRankings({ rankings, weatherData, onCitySelect, loading = false, error = "" }: ActivityRankingsProps) {
   const [selectedActivity, setSelectedActivity] = useState<{
     activity: string
     ranking: ActivityRanking
@@ -26,6 +28,22 @@ export default function ActivityRankings({ rankings, weatherData, onCitySelect }
 
   const handleClosePanel = () => {
     setSelectedActivity(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/15 p-4 rounded-md text-destructive text-center">
+        <p>{error}</p>
+      </div>
+    )
   }
 
   return (

@@ -17,7 +17,7 @@ export default function GraphiQLPage() {
     setMounted(true);
   }, []);
 
-  const fetcher = async (graphQLParams: any) => {
+  const fetcher = async (graphQLParams: { query: string; variables?: Record<string, unknown> }) => {
     const response = await fetch('/api/graphql', {
       method: 'POST',
       headers: {
