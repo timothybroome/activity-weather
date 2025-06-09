@@ -7,6 +7,11 @@
 A client asked for a "walk-through-ready" proof-of-concept that emphasises clean architecture, long-term maintainability, and clear communication.  
 Time-boxed to ± 3 hours, the goal was to show **how** we would build a production-grade system, not to ship every bell and whistle.
 
+
+[Live Demo](https://activity-weather.vercel.app/)
+
+
+
 ---
 
 ## 2. Architectural Overview
@@ -85,7 +90,7 @@ type Location {
   forecast: Forecast  # stitched sub-resolver
 }
 ```
-*Example "optimized query" (single round-trip):*
+*Example nested query with latitude and longitude root parameters; for use in auto-complete where geocoding lookup isn't needed:*
 ```graphql
 query GetWeatherAndActivityData($latitude: Float!, $longitude: Float!) {
   forecast(latitude: $latitude, longitude: $longitude) {
@@ -108,6 +113,37 @@ query GetWeatherAndActivityData($latitude: Float!, $longitude: Float!) {
       averageScore
       dailyScores
       reasoning
+    }
+  }
+}
+```
+
+
+```
+*Example using geocode (city name search) resolver to get city data and nested forecast resolver:*
+```graphql
+{
+  geocode(name: "Tokyo, Japan") {
+    results {
+      id
+      name
+      latitude
+      longitude
+      country
+      admin1
+      forecast {
+        current_weather {
+          temperature
+          wind_speed
+          wind_direction
+          weather_code
+        }
+        activityRankings{
+          activity
+          averageScore
+          reasoning
+        }
+      }
     }
   }
 }
@@ -152,16 +188,17 @@ This trade-off prioritizes UI responsiveness over architectural consistency, whi
 
 ## 3. Developer Experience
 
-| Task | Command |
-|------|----------|
-| Install | `npm install` |
-| Development | `npm run dev` → http://localhost:3000 |
-| Build | `npm run build` |
-| Start | `npm run start` |
-| Storybook | `npm run storybook` → http://localhost:6006 |
-| Build Storybook | `npm run build-storybook` |
-| Lint | `npm run lint` |
-| Unit Tests | `npm run test` (Jest testing of activity-rankings) |
+| Task | Command | Live |
+|------|----------|----------|
+| Install | `npm install` | N/A |
+| Development | `npm run dev` → http://localhost:3000 | https://activity-weather.vercel.app/ |
+| Build | `npm run build` | N/A |
+| Start | `npm run start` | N/A |
+| GraphiQl | `http://localhost:3000/graphql-playground` | https://activity-weather.vercel.app/graphql-playground |
+| Storybook | `npm run storybook` → http://localhost:6006 | In progress | 
+| Build Storybook | `npm run build-storybook` | N/A |
+| Lint | `npm run lint` | N/A |
+| Unit Tests | `npm run test` (Jest testing of activity-rankings) | N/A |
 
 ### 3.1 GraphQL Playground/GraphiQL
 1. Start the development server (`npm run dev` or `yarn dev`)
@@ -196,6 +233,9 @@ There are unit tests around the key business logic of the solution; the activity
 
 ## 5. AI Assistance
 
+AI strategy was to use Claude 3.7 in areas of isolated scope; such as the initial generation of graphql schema from the open-meteo [openapi.yaml](https://github.com/open-meteo/open-meteo/raw/refs/heads/main/openapi.yml) and initial resolvers. These were then analysed and customised. This is to reduce human error in manually translating formats
+
+AI was also used to generate content such as "Alternative Destinations" for presentation purposes. This would be generated dynamically or via real curated content in the final production app.
 
 ---
 
@@ -205,10 +245,13 @@ There are unit tests around the key business logic of the solution; the activity
 |----------------------|-----------|---------------------|
 | **No DB / Caching** | 3-hour scope; Open-Meteo is free & fast. | Add Redis edge cache; cron job pre-fetch daily forecasts. |
 | **Styling Customization** | Using Tailwind and shadcn defaults with minimal customization. | Extend Tailwind configuration with your custom design-system tokens and further customize shadcn components. |
-| **Auth / Rate Limiting** | Not needed for demo. | Add NextAuth.js and API route middleware for authentication and rate limiting. |
-| **Full E2E Tests** | Time constraint. | Playwright E2E testing suite integration (already in dependencies). |
+| **Limited Unit Test Coverage** | Time constraint. | Unit tests were added for the key ranking algorithm but should be expanded to cover more of the application. |
+| **Full E2E Tests** | Time constraint. | Cypress E2E testing suite integration |
 | **Error i18n** | English-only for brevity. | Implement next-intl or next-i18next. |
 | **Accessibility Audit** | Manual light pass only. | Integrate the existing Storybook a11y addon and implement ARIA improvements. |
+| **CI/CD** | Not needed for demo. | Add GitHub Actions with Jest unit tests, Cypress tests, and automatic preview deployments. |
+| **Auth / Rate Limiting** | Not needed for demo. | Add NextAuth.js and API route middleware for authentication and rate limiting. |
+| **More factors needed to provide real-life usable rankings** | Instruction to use Open-Meteo as only data source | Geographic, real-human experience information needed. Perhaps use of AI to reason over weather, real life conditions, and other factors to provide more accurate rankings.  |
 
 ---
 
@@ -218,7 +261,7 @@ There are unit tests around the key business logic of the solution; the activity
 2. **Auto-Scaling** – Next.js API routes are serverless and stateless → easy deployment to Vercel or similar platforms.  
 3. **Monitoring** – integrate observability tools like Vercel Analytics or OpenTelemetry for Next.js.  
 4. **Performance Optimization** – leverage Next.js built-in image optimization, code splitting, and server components.  
-5. **CI/CD** – GitHub Actions with Vitest unit tests, Storybook visual tests, and automatic preview deployments.
+5. **CI/CD** – Test coverage, test-success, build-success and so-on should be integrated into the CI/CD pipeline. Pre-conditions should be met before human pull-request reviews are considered; and a requrement for merges of feature branches.
 
 ---
 
