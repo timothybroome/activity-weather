@@ -1,103 +1,139 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { HeroSection } from "@/components/hero-section"
+import { SearchLocation } from "@/components/search-location"
+import { FeaturesSection } from "@/components/features-section"
+import WeatherChart from "@/components/weather-chart"
+import ActivityRankings from "@/components/activity-rankings"
+import type { WeatherData, ActivityRanking } from "@/types/weather"
+// Removed REST API import
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [loading, setLoading] = useState(false)
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [rankings, setRankings] = useState<ActivityRanking[]>([])
+  const [error, setError] = useState("")
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  const handleSearch = async (city: { name: string, latitude: number, longitude: number, country: string, region?: string }) => {
+    setLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            query GetWeatherAndActivityData($latitude: Float!, $longitude: Float!) {
+              forecast(latitude: $latitude, longitude: $longitude) {
+                daily {
+                  time
+                  temperature_2m_max
+                  temperature_2m_min
+                  precipitation_sum
+                  wind_speed_10m_max
+                  weather_code
+                }
+                current_weather {
+                  temperature
+                  wind_speed
+                  wind_direction
+                  weather_code
+                }
+                activityRankings {
+                  activity
+                  averageScore
+                  dailyScores
+                  reasoning
+                }
+              }
+            }
+          `,
+          variables: {
+            latitude: city.latitude,
+            longitude: city.longitude
+          }
+        })
+      })
+
+      const { data, errors } = await response.json()
+
+      if (errors) {
+        throw new Error(errors[0].message || "Failed to fetch weather data")
+      }
+
+      if (!data.forecast) {
+        throw new Error("Failed to get forecast data")
+      }
+
+      const locationString = `${city.name}${city.region ? `, ${city.region}` : ""}, ${city.country}`
+      
+      const processedWeatherData: WeatherData = {
+        location: locationString,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        daily: data.forecast.daily,
+      }
+      
+      const activityRankings = data.forecast?.activityRankings || []
+
+      setWeatherData(processedWeatherData)
+      setRankings(activityRankings)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+      setWeatherData(null)
+      setRankings([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+
+      <main className="flex-1">
+        <HeroSection />
+
+        <section className="py-6">
+          <div className="container">
+            <SearchLocation onSearch={handleSearch} loading={loading} error={error} />
+          </div>
+        </section>
+
+        {loading && (
+          <div className="container max-w-6xl mx-auto space-y-4 py-6">
+            <Skeleton className="h-8 w-64 mx-auto" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-64" />
+              ))}
+            </div>
+            <Skeleton className="h-[400px]" />
+          </div>
+        )}
+
+        {weatherData && rankings.length > 0 && (
+          <section className="py-8 bg-primary/5 dark:bg-primary/10">
+            <div className="container max-w-6xl mx-auto space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{weatherData.location}</h2>
+              </div>
+              <ActivityRankings rankings={rankings} weatherData={weatherData} onCitySelect={handleSearch} />
+              <WeatherChart weatherData={weatherData} />
+            </div>
+          </section>
+        )}
+
+        {!weatherData && !loading && <FeaturesSection />}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer />
     </div>
-  );
+  )
 }
