@@ -200,21 +200,21 @@ export function AutocompleteSearch({ onSearch, loading, error }: AutocompleteSea
   }
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="relative w-full md:max-w-2xl lg:max-w-3xl mx-auto">
       <Card className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={inputRef}
-                placeholder="Search for a city (e.g., New York, London, Tokyo)"
+                placeholder="Search for a city..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => {
                   if (query.trim()) setShowSuggestions(true)
                 }}
-                className="pl-9 pr-8"
+                className="pl-9 pr-8 h-10 text-base"
                 disabled={loading}
               />
               {query && (
@@ -228,16 +228,20 @@ export function AutocompleteSearch({ onSearch, loading, error }: AutocompleteSea
                 </Button>
               )}
             </div>
-            <Button onClick={handleSearch} disabled={loading || !query.trim()} className="gap-2">
+            <Button 
+              onClick={handleSearch} 
+              disabled={loading || !query.trim()} 
+              className="gap-2 h-10 px-4 sm:px-6 w-full sm:w-auto"
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Searching...
+                  <span className="sm:inline">Searching...</span>
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  Search
+                  <span className="sm:inline">Search</span>
                 </>
               )}
             </Button>

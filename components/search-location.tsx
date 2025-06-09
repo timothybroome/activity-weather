@@ -10,9 +10,11 @@ interface SearchLocationProps {
 
 export function SearchLocation({ onSearch, loading, error }: SearchLocationProps) {
   return (
-    <section id="search" className="py-12">
-      <div className="container">
-        <AutocompleteSearch onSearch={onSearch} loading={loading} error={error} />
+    <section id="search" className="py-8 sm:py-12">
+      <div className="container px-0 sm:px-6 mx-auto">
+        <div className="max-w-screen-lg mx-auto">
+          <AutocompleteSearch onSearch={onSearch} loading={loading} error={error} />
+        </div>
       </div>
     </section>
   )
